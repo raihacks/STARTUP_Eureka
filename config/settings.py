@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'products'
+    'products',
+    'bookings',
+    'payments'
 ]
 
 MIDDLEWARE = [
@@ -118,6 +120,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+#edit: temporary
+#LOGIN_URL = '/product/catalog/'
 # Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

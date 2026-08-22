@@ -19,12 +19,24 @@ from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
+# Simple logout function that accepts both GET and POST requests
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+def simple_logout(request):
+    logout(request)
+    return redirect('/product/catalog/')
+
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-     path(
-        "lender/products/",
-        include("products.urls")
-    ),
+    path('product/', include('products.urls')),  
+    path('booking/', include('bookings.urls')), 
+    path('payments/', include('payments.urls')),
+    
+    # edit :Catch-all logout route for the project temporary
+    path('logout/', simple_logout, name='logout'),      
 ]
 
 urlpatterns += static(

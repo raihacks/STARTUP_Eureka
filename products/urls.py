@@ -27,5 +27,14 @@ urlpatterns = [
         views.view_product,
         name="view_product"
     ),
+    
+    path('lender/products/', views.lender_products, name='lender_products'),
+    
+    # Customer Routes
+    path('catalog/', views.customer_catalog, name='customer_catalog')
 
 ]
+
+
+
+
