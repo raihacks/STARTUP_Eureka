@@ -1,72 +1,145 @@
 from datetime import datetime
-from django.shortcuts import redirect, get_object_or_404
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+
 from products.models import Product
-from .models import Booking
 
-# 1. RENTER: Creates request from /product/catalog/
+from .models import Booking, BookingStateError
+from .permissions import require_lender, require_renter
+from .utils import OverlapError, create_booking_request, transition_booking
+
+
+@login_required
 def create_booking(request, product_id):
-    if request.method == 'POST':
-        product = get_object_or_404(Product, id=product_id)
-        
-        start_date = datetime.strptime(request.POST['start_date'], '%Y-%m-%d').date()
-        end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
-        
-        days = (end_date - start_date).days or 1
-        rental_total = product.rental_price * days
+    """
+    POST target for the "Confirm & Request Rental" form in the customer
+    catalog modal. Matches the JS-constructed action `/booking/create/<id>/`.
+    """
+    product = get_object_or_404(Product, pk=product_id, available=True)
 
-        Booking.objects.create(
-            renter=request.user,
-            lender=product.owner,  # Ensure Product model has 'owner'
+    if request.method != "POST":
+        return redirect("customer_catalog")
+
+    try:
+        start_date = datetime.strptime(request.POST["start_date"], "%Y-%m-%d").date()
+        end_date = datetime.strptime(request.POST["end_date"], "%Y-%m-%d").date()
+    except (KeyError, ValueError):
+        messages.error(request, "Please provide valid start and end dates.")
+        return redirect("customer_catalog")
+
+    try:
+        create_booking_request(
             product=product,
+            renter=request.user,
             start_date=start_date,
             end_date=end_date,
-            rental_price=rental_total,
-            security_deposit=product.security_deposit,
-            status='REQUESTED'
         )
-        messages.success(request, "Booking requested! Waiting for lender to accept.")
-        return redirect('customer_catalog')
+        messages.success(request, "Rental request sent! You'll be notified once the lender responds.")
+    except OverlapError as exc:
+        messages.error(request, str(exc))
+    except ValueError as exc:
+        messages.error(request, str(exc))
 
-    return redirect('customer_catalog')
+    return redirect("customer_catalog")
 
 
-# 2. LENDER: Accepts or Rejects request
+@login_required
 def accept_booking(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id, lender=request.user)
-    booking.status = 'APPROVED'
-    booking.save()
-    messages.success(request, f"Booking #{booking.id} accepted. Renter can now pay within 2 days.")
-    return redirect('lender_products')
+    booking = get_object_or_404(Booking, pk=booking_id)
+    require_lender(booking, request.user)
 
+    if request.method != "POST":
+        return redirect("lender_products")
+
+    try:
+        with transaction.atomic():
+            transition_booking(
+                booking_id=booking.pk,
+                new_status=Booking.Status.APPROVED,
+                actor=request.user,
+            )
+        messages.success(request, "Booking approved. The customer has 48 hours to pay.")
+    except BookingStateError as exc:
+        messages.error(request, str(exc))
+
+    return redirect("lender_products")
+
+
+@login_required
 def reject_booking(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id, lender=request.user)
-    booking.status = 'REJECTED'
-    booking.save()
-    messages.info(request, f"Booking #{booking.id} rejected.")
-    return redirect('lender_products')
+    booking = get_object_or_404(Booking, pk=booking_id)
+    require_lender(booking, request.user)
+
+    if request.method != "POST":
+        return redirect("lender_products")
+
+    try:
+        with transaction.atomic():
+            transition_booking(
+                booking_id=booking.pk,
+                new_status=Booking.Status.REJECTED,
+                actor=request.user,
+            )
+        messages.info(request, "Booking request declined.")
+    except BookingStateError as exc:
+        messages.error(request, str(exc))
+
+    return redirect("lender_products")
 
 
-# 3. LENDER: Confirms Handover (Item given to renter)
+@login_required
 def confirm_handover(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id, lender=request.user)
-    if booking.status == 'PAID':
-        booking.status = 'ACTIVE'
-        booking.save()
-        messages.success(request, "Rental period active. Item handed over to renter.")
-    return redirect('lender_products')
+    """PAID -> ACTIVE. Also flips Product.available = False."""
+    booking = get_object_or_404(Booking, pk=booking_id)
+    require_lender(booking, request.user)
+
+    if request.method != "POST":
+        return redirect("lender_products")
+
+    try:
+        with transaction.atomic():
+            transition_booking(
+                booking_id=booking.pk,
+                new_status=Booking.Status.ACTIVE,
+                actor=request.user,
+            )
+            Product.objects.filter(pk=booking.product_id).update(available=False)
+        messages.success(request, "Handover confirmed. Item marked as rented.")
+    except BookingStateError as exc:
+        messages.error(request, str(exc))
+
+    return redirect("lender_products")
 
 
-# 4. LENDER: Confirms Return (Triggers payout settlement)
+@login_required
 def confirm_return(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id, lender=request.user)
-    if booking.status == 'ACTIVE':
-        booking.status = 'COMPLETED'
-        booking.save()
-        # MVP Payout Settlement Simulation:
-        # 1. Rental Amount (₹1,000) released to Lender
-        # 2. Deposit Amount (₹5,000) refunded to Renter
-        # 3. Platform Fee (₹100) retained
-        messages.success(request, f"Item returned! Released ₹{booking.rental_price} to you and refunded ₹{booking.security_deposit} deposit to renter.")
-    return redirect('lender_products')
+    """
+    ACTIVE -> COMPLETED. Relists the item, then hands off to the
+    Payment & Escrow Service to release the deposit.
+    """
+    booking = get_object_or_404(Booking, pk=booking_id)
+    require_lender(booking, request.user)
 
+    if request.method != "POST":
+        return redirect("lender_products")
+
+    from payments.services import EscrowService  # local import: avoid app coupling at load time
+
+    try:
+        with transaction.atomic():
+            transition_booking(
+                booking_id=booking.pk,
+                new_status=Booking.Status.COMPLETED,
+                actor=request.user,
+            )
+            Product.objects.filter(pk=booking.product_id).update(available=True)
+            EscrowService.release_deposit(booking_id=booking.pk, released_by=request.user)
+        messages.success(request, "Return confirmed. Deposit released back to the customer.")
+    except BookingStateError as exc:
+        messages.error(request, str(exc))
+
+    return redirect("lender_products")

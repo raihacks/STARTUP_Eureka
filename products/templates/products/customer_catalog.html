@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block title %}Konekt | Customer Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --orange: #ff6b00;
+        --orange-hover: #e05e00;
+        --muted: #6c757d;
+        --border: #e9ecef;
+        --page: #f8f9fa;
+        --card-bg: var(--bg-card, #ffffff);
+    }
+
+    .dashboard-wrapper { max-width: 1100px; margin: 10px auto; }
+
+    /* Lender Approval Alert Banner */
+    .alert-banner { 
+        background: #e6f4ea; 
+        border: 1px solid #34a853; 
+        color: #137333; 
+        padding: 14px 18px; 
+        border-radius: 10px; 
+        margin-bottom: 20px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        flex-wrap: wrap; 
+        gap: 10px; 
+    }
+    .pay-banner-btn { 
+        background: #28a745; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-weight: bold; 
+        font-size: 0.85rem; 
+        text-decoration: none; 
+    }
+
+    /* Tabs Navigation */
+    .tab-nav { display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+    .tab-nav-item { 
+        background: none; 
+        border: none; 
+        padding: 10px 18px; 
+        font-weight: 600; 
+        font-size: 0.95rem; 
+        color: var(--muted); 
+        cursor: pointer; 
+        border-bottom: 3px solid transparent; 
+        white-space: nowrap; 
+    }
+    .tab-nav-item.active { color: var(--orange); border-bottom-color: var(--orange); }
+    .badge { background: var(--orange); color: white; padding: 2px 7px; border-radius: 10px; font-size: 0.75rem; margin-left: 4px; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Stat Cards */
+    .stat-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 14px 18px; border-radius: 10px; display: flex; flex-direction: column; }
+    .stat-card-label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    .stat-card-value { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+
+    /* Catalog Filter & Grid */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-bar input, .filter-bar select { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; flex: 1; min-width: 150px; font-size: 0.9rem; }
+    .filter-bar button { padding: 10px 20px; background: var(--orange); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+    .product-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .product-image { height: 160px; background: #eee; display: flex; align-items: center; justify-content: center; color: var(--muted); font-weight: bold; }
+    .product-image img { width: 100%; height: 100%; object-fit: cover; }
+    .product-body { padding: 15px; display: flex; flex-direction: column; flex: 1; }
+    .product-category { font-size: 0.75rem; font-weight: 700; color: var(--orange); text-transform: uppercase; }
+    .product-title { font-size: 1.1rem; margin: 4px 0 8px 0; font-weight: 700; }
+    .product-meta { display: flex; justify-content: space-between; background: var(--page); padding: 10px; border-radius: 8px; margin-top: auto; margin-bottom: 12px; color: #212529; }
+    .product-meta-label { display: block; font-size: 0.7rem; color: var(--muted); }
+    .product-meta-value { font-weight: 700; font-size: 0.85rem; }
+    .product-actions { display: flex; gap: 8px; }
+    .product-actions button { flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; background: var(--orange); color: white; }
+    .product-actions button.secondary-button { background: var(--page); border: 1px solid var(--border); color: var(--text); }
+
+    /* Non-overlapping Status Badges */
+    .status-pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+    .status-pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .status-approved { background: #e6f4ea; color: #137333; border: 1px solid #ceedd6; }
+    .status-paid { background: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+    .status-active { background: #cff4fc; color: #055160; border: 1px solid #b6effb; }
+    .status-expired { background: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+
+    /* Table Styling */
+    .data-table-wrapper { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    .data-table th, .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .data-table th { background: var(--page); font-size: 0.75rem; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+    /* Modals */
+    .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 15px; }
+    .modal-overlay.open { display: flex; }
+    .modal-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted); }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
+    .field input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+</style>
+
+<div class="dashboard-wrapper">
+
+    <!-- LENDER APPROVAL NOTIFICATION BANNER -->
+    {% for booking in user_bookings %}
+        {% if booking.status|upper == 'APPROVED' %}
+            <div class="alert-banner">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.3rem;">🎉</span>
+                    <div>
+                        <strong>Action Required: Request Approved!</strong><br>
+                        Your booking for <strong>{{ booking.product.name }}</strong> was accepted by the lender. Complete payment to lock in your rental.
+                    </div>
+                </div>
+                <a href="{% url 'payments:pay_booking' booking.id %}" class="pay-banner-btn">
+                    Pay Now (₹{{ booking.rental_price|add:booking.deposit_amount }})
+                </a>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- TAB NAVIGATION -->
+    <div class="tab-nav">
+        <button class="tab-nav-item active" onclick="switchTab('catalogTab', this)">
+            Browse Catalog
+        </button>
+        <button class="tab-nav-item" onclick="switchTab('rentedTab', this)">
+            Currently Rented & Requests <span class="badge" id="activeBadgeCount">0</span>
+        </button>
+        <button class="tab-nav-item" onclick="switchTab('historyTab', this)">
+            Rental History
+        </button>
+    </div>
+
+    <!-- TAB 1: BROWSE CATALOG -->
+    <section id="catalogTab" class="tab-content active">
+        <form method="GET" action="{% url 'customer_catalog' %}" class="filter-bar">
+            <input type="text" name="q" placeholder="Search items, descriptions, or locations..." value="{{ search_query }}">
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="listings-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}No Image{% endif %}
+                </div>
+                <div class="product-body">
+                    <span class="product-category">{{ product.category }}</span>
+                    <h2 class="product-title">{{ product.name }}</h2>
+                    <p style="font-size: 0.85rem; margin-bottom: 15px; color: var(--muted);">📍 {{ product.location }}</p>
+                    
+                    <div class="product-meta">
+                        <div>
+                            <span class="product-meta-label">Rental Fee</span>
+                            <span class="product-meta-value">₹{{ product.rental_price }}/day</span>
+                        </div>
+                        <div>
+                            <span class="product-meta-label">Deposit</span>
+                            <span class="product-meta-value">₹{{ product.security_deposit }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button type="button" class="secondary-button" onclick="openViewModal({
+                            id: '{{ product.id }}',
+                            name: '{{ product.name|escapejs }}',
+                            category: '{{ product.category|escapejs }}',
+                            description: '{{ product.description|escapejs }}',
+                            price: '{{ product.rental_price }}',
+                            deposit: '{{ product.security_deposit }}',
+                            location: '{{ product.location|escapejs }}',
+                            condition: '{{ product.condition|escapejs }}',
+                            imageUrl: '{% if product.image %}{{ product.image.url }}{% endif %}'
+                        })">View</button>
+
+                        <button type="button" onclick="openBookingModal({
+                            id: '{{ product.id }}',
+                            name: '{{ product.name|escapejs }}',
+                            price: '{{ product.rental_price }}',
+                            deposit: '{{ product.security_deposit }}',
+                            description: '{{ product.description|escapejs }}'
+                        })">Rent</button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">
+                No items available at the moment.
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- TAB 2: CURRENTLY RENTED & ACTIVE BOOKINGS -->
+    <section id="rentedTab" class="tab-content">
+        <h2 style="margin: 0 0 15px 0; font-size: 1.4rem;">Rental Lifecycle & Requests</h2>
+
+        <!-- DYNAMIC STAT COUNTERS (CALCULATED VIA JS) -->
+        <div class="stat-card-grid">
+            <div class="stat-card">
+                <span class="stat-card-label">⏳ Pending Requests</span>
+                <span class="stat-card-value" id="countPending">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card-label">💳 Approved (Pay Now)</span>
+                <span class="stat-card-value" id="countApproved" style="color: #28a745;">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card-label">📦 Received / In Use</span>
+                <span class="stat-card-value" id="countActive" style="color: #17a2b8;">0</span>
+            </div>
+        </div>
+
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Period</th>
+                        <th>Fee</th>
+                        <th>Escrow Deposit</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in user_bookings %}
+                        {% if booking.status|upper != 'COMPLETED' and booking.status|upper != 'REJECTED' %}
+                        <tr class="active-booking-row" data-status="{{ booking.status|upper }}">
+                            <td><strong>{{ booking.product.name }}</strong></td>
+                            <td style="font-size: 0.85rem; color: var(--muted);">{{ booking.start_date }} to {{ booking.end_date }}</td>
+                            <td>₹{{ booking.rental_price }}</td>
+                            <td>₹{{ booking.deposit_amount }} <small style="color:var(--muted);">(Refundable)</small></td>
+                            <td>
+                                {% if booking.status|upper == 'PENDING' or booking.status|upper == 'REQUESTED' %}
+                                    <span class="status-pill status-pending">⏳ Requested</span>
+                                {% elif booking.status|upper == 'APPROVED' %}
+                                    <span class="status-pill status-approved">🎉 Approved</span>
+                                {% elif booking.status|upper == 'PAID' %}
+                                    <span class="status-pill status-paid">✓ Escrow Secured</span>
+                                {% elif booking.status|upper == 'ACTIVE' %}
+                                    <span class="status-pill status-active">📦 Received & In Use</span>
+                                {% else %}
+                                    <span class="status-pill status-expired">{{ booking.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right;">
+                                {% if booking.status|upper == 'APPROVED' %}
+                                    <a href="{% url 'payments:pay_booking' booking.id %}" style="padding: 7px 14px; font-size: 0.85rem; background: #28a745; color: white; border-radius: 6px; text-decoration: none; font-weight: 700; display: inline-block;">
+                                        💳 Pay ₹{{ booking.rental_price|add:booking.deposit_amount }}
+                                    </a>
+                                {% elif booking.status|upper == 'PAID' %}
+                                    <span style="font-size: 0.8rem; color: #28a745; font-weight:600;">Awaiting Handover</span>
+                                {% elif booking.status|upper == 'ACTIVE' %}
+                                    <span style="font-size: 0.8rem; color: var(--muted);">Return item when done</span>
+                                {% else %}
+                                    <span style="font-size: 0.8rem; color: var(--muted);">Awaiting Lender</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 30px; color: var(--muted);">No active rental requests.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- TAB 3: HISTORY -->
+    <section id="historyTab" class="tab-content">
+        <h2 style="margin: 0 0 20px 0; font-size: 1.4rem;">Past Rental History</h2>
+        <div class="data-table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Period</th>
+                        <th>Total Paid</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in user_bookings %}
+                        {% if booking.status|upper == 'COMPLETED' or booking.status|upper == 'REJECTED' %}
+                        <tr>
+                            <td><strong>{{ booking.product.name }}</strong></td>
+                            <td style="font-size: 0.85rem; color: var(--muted);">{{ booking.start_date }} to {{ booking.end_date }}</td>
+                            <td>₹{{ booking.total_price|default:booking.rental_price }}</td>
+                            <td>
+                                {% if booking.status|upper == 'COMPLETED' %}
+                                    <span class="status-pill status-paid">✓ Completed & Refunded</span>
+                                {% else %}
+                                    <span class="status-pill status-expired">Declined</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 30px; color: var(--muted);">No past history.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- VIEW PRODUCT MODAL -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="viewName" style="margin:0;">Product Name</h3>
+            <button class="modal-close" onclick="closeModal('viewModal')">&times;</button>
+        </div>
+        <div>
+            <div id="viewImage" style="height: 180px; background:var(--page); border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; overflow:hidden; color: var(--muted);">No Image</div>
+            <span class="product-category" id="viewCategory">Category</span>
+            <p id="viewDescription" style="margin: 10px 0; color: var(--muted); font-size: 0.9rem;"></p>
+
+            <div class="product-meta" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                <div><span class="product-meta-label">Daily Fee</span><strong id="viewPrice" style="color:var(--orange);">₹0</strong></div>
+                <div><span class="product-meta-label">Deposit</span><strong id="viewDeposit">₹0</strong></div>
+                <div><span class="product-meta-label">Condition</span><strong id="viewCondition">Good</strong></div>
+                <div><span class="product-meta-label">Location</span><strong id="viewLocation">City</strong></div>
+            </div>
+
+            <button style="width:100%; padding:10px; background:var(--orange); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;" id="proceedToRentBtn">Proceed to Rent</button>
+        </div>
+    </div>
+</div>
+
+<!-- RENTAL BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="bookingTitle" style="margin:0;">Rent Item</h3>
+            <button class="modal-close" onclick="closeModal('bookingModal')">&times;</button>
+        </div>
+        <div>
+            <p id="bookingDescription" style="margin-bottom: 15px; color: var(--muted); font-size: 0.85rem;"></p>
+            
+            <form id="bookingForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="field">
+                    <label>Start Date</label>
+                    <input type="date" id="startDate" name="start_date" required onchange="calculateTotal()">
+                </div>
+                <div class="field">
+                    <label>End Date</label>
+                    <input type="date" id="endDate" name="end_date" required onchange="calculateTotal()">
+                </div>
+
+                <div class="product-meta" style="display: block; margin: 15px 0;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.85rem;">
+                        <span>Rental Fee:</span> <strong id="rentalFeeDisplay">₹0</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.85rem;">
+                        <span>Deposit (Refundable):</span> <strong id="depositDisplay">₹0</strong>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
+                    <div style="display:flex; justify-content:space-between; font-size:1rem;">
+                        <span>Total Payable:</span> <strong id="totalDisplay" style="color:var(--orange);">₹0</strong>
+                    </div>
+                </div>
+
+                <button type="submit" style="width:100%; padding:12px; background:var(--orange); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Confirm & Request Rental</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if (btnElement) btnElement.classList.add('active');
+    }
+
+    let currentItemPrice = 0;
+    let currentItemDeposit = 0;
+
+    function openViewModal(data) {
+        document.getElementById('viewName').textContent = data.name;
+        document.getElementById('viewCategory').textContent = data.category;
+        document.getElementById('viewDescription').textContent = data.description;
+        document.getElementById('viewPrice').textContent = '₹' + data.price;
+        document.getElementById('viewDeposit').textContent = '₹' + data.deposit;
+        document.getElementById('viewCondition').textContent = data.condition;
+        document.getElementById('viewLocation').textContent = data.location;
+        
+        const imgContainer = document.getElementById('viewImage');
+        if (data.imageUrl) {
+            imgContainer.innerHTML = `<img src="${data.imageUrl}" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+            imgContainer.innerHTML = '<span>No Image</span>';
+        }
+
+        const rentBtn = document.getElementById('proceedToRentBtn');
+        rentBtn.onclick = () => {
+            closeModal('viewModal');
+            openBookingModal(data);
+        };
+        
+        document.getElementById('viewModal').classList.add('open');
+    }
+
+    function openBookingModal(data) {
+        document.getElementById('bookingTitle').textContent = `Rent ${data.name}`;
+        document.getElementById('bookingDescription').textContent = data.description;
+        currentItemPrice = parseFloat(data.price);
+        currentItemDeposit = parseFloat(data.deposit);
+        
+        document.getElementById('rentalFeeDisplay').textContent = '₹0';
+        document.getElementById('depositDisplay').textContent = `₹${currentItemDeposit}`;
+        document.getElementById('totalDisplay').textContent = `₹${currentItemDeposit}`;
+        
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        
+        document.getElementById('bookingForm').action = `/booking/create/${data.id}/`;
+        document.getElementById('bookingModal').classList.add('open');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('open');
+    }
+
+    function calculateTotal() {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        
+        if (start && end) {
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            
+            if (diffDays > 0) {
+                const rentalTotal = diffDays * currentItemPrice;
+                document.getElementById('rentalFeeDisplay').textContent = `₹${rentalTotal} (${diffDays} days)`;
+                const total = rentalTotal + currentItemDeposit;
+                document.getElementById('totalDisplay').textContent = `₹${total}`;
+            }
+        }
+    }
+
+    // Dynamic JS Status Counter Calculation
+    document.addEventListener("DOMContentLoaded", function() {
+        let pending = 0, approved = 0, active = 0;
+        const rows = document.querySelectorAll('.active-booking-row');
+        
+        rows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            if (status === 'PENDING' || status === 'REQUESTED') pending++;
+            else if (status === 'APPROVED') approved++;
+            else if (status === 'PAID' || status === 'ACTIVE') active++;
+        });
+
+        document.getElementById('countPending').textContent = pending;
+        document.getElementById('countApproved').textContent = approved;
+        document.getElementById('countActive').textContent = active;
+        document.getElementById('activeBadgeCount').textContent = rows.length;
+    });
+</script>
+{% endblock %}

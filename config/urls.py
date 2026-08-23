@@ -29,9 +29,21 @@ def simple_logout(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('product/', include('products.urls')),  
-    path('booking/', include('bookings.urls')), 
-    path('payments/', include('payments.urls')),
+    path('product/', include('products.urls')), 
+    
+     
+    # NEW — Booking Service (web/template flow)
+    path("booking/", include("bookings.urls")),
+
+    # NEW — Payment & Escrow Service (web checkout page)
+    path("payments/", include(("payments.urls", "payments"), namespace="payments")),
+
+    # NEW — Mobile REST API (both services)
+    path("api/bookings/", include(("bookings.api_urls", "bookings_api"), namespace="bookings_api")),
+    path("api/payments/", include(("payments.api_urls", "payments_api"), namespace="payments_api")),
+
+
+
     path('logout/', simple_logout, name='logout'),      
     path('', RedirectView.as_view(pattern_name='accounts:dashboard', permanent=False)),
 ]

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    "rest_framework",
     'products',
     'bookings',
     'payments',
@@ -161,3 +162,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email (console backend for development - prints emails to the terminal)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+# --- REST Framework ------------------------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",   # or JWT, per your mobile auth choice
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+# --- Celery (48h auto-expiration sweep + webhook dispatch) --------------
+CELERY_BEAT_SCHEDULE = {
+    "expire-stale-bookings": {
+        "task": "bookings.expire_stale_approved_bookings",
+        "schedule": 300.0,  # every 5 minutes
+    },
+}
+
+# --- Payment gateway ------------------------------------------------------
+PAYMENT_GATEWAY_WEBHOOK_SECRET = None   # HMAC secret from your gateway dashboard
+BOOKING_WEBHOOK_URLS = []                          # partner webhook subscriber URLs
+
+

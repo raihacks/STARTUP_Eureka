@@ -36,6 +36,8 @@ def lender_products(request):
         'lender_bookings': lender_bookings,
     }
     return render(request, 'products/product.html', context)
+
+
 @login_required
 def accept_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, product__lender=request.user)
@@ -195,6 +197,6 @@ def customer_catalog(request):
         'search_query': search_query,
         'selected_category': selected_category,
     }
-    return render(request, 'customer_catalog.html', context)
+    return render(request, 'products/customer_catalog.html', context)
 
 
