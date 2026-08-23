@@ -172,26 +172,32 @@ def view_product(request, product_id):
 def customer_catalog(request):
     products = Product.objects.filter(available=True)
     
+    # Filter by search and category
+    search_query = request.GET.get('q', '')
+    selected_category = request.GET.get('category', '')
+    
+    if search_query:
+        products = products.filter(name__icontains=search_query)
+    if selected_category:
+        products = products.filter(category=selected_category)
+        
+    categories = [choice[0] for choice in Product.Category.choices]
+    
     # CRITICAL: Only query user bookings/profile if the user is logged in
     user_bookings = []
     if request.user.is_authenticated:
         user_bookings = Booking.objects.filter(
-        renter=request.user
+            renter=request.user
         ).select_related('product', 'lender').order_by('-created_at')
         for booking in user_bookings:
             check_and_expire_booking(booking)
-        context = {
-            'products': products,
-            'user_bookings': user_bookings,
-        }
-
-        
-        # If you have a Customer/Profile model lookup, wrap it here too:
-        # customer_profile = Customer.objects.get(user=request.user)
 
     context = {
         'products': products,
         'user_bookings': user_bookings,
+        'categories': categories,
+        'search_query': search_query,
+        'selected_category': selected_category,
     }
     return render(request, 'customer_catalog.html', context)
 
