@@ -24,46 +24,70 @@
 
     <!-- TAB 1: BROWSE CATALOG -->
     <section id="catalogTab" class="tab-content active">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 1.6rem;">Explore Rental Items</h1>
+        
+        <div class="modern-header">
+            <h1 style="margin: 0 0 15px 0; font-size: 1.6rem;">Explore Rental Items</h1>
+            <form method="GET" action="{% url 'customer_catalog' %}" class="modern-search-bar" id="searchForm">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" name="q" placeholder="Search items, descriptions, or locations..." value="{{ search_query }}">
+                <input type="hidden" name="category" id="categoryInput" value="{{ selected_category }}">
+                <button type="submit" style="white-space: nowrap; padding: 6px 14px;">Search</button>
+            </form>
         </div>
 
-        <form method="GET" action="{% url 'customer_catalog' %}" class="filter-bar">
-            <input type="text" name="q" placeholder="Search items, descriptions, or locations..." value="{{ search_query }}">
-            <select name="category">
-                <option value="">All Categories</option>
-                {% for cat in categories %}
-                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" style="white-space: nowrap;">Search</button>
-        </form>
+        <div class="section-title">Browse categories</div>
+        <div class="category-slider">
+            <div class="category-pill {% if not selected_category %}active{% endif %}" onclick="selectCategory('')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>All</span>
+            </div>
+            {% for cat in categories %}
+            <div class="category-pill {% if selected_category == cat %}active{% endif %}" onclick="selectCategory('{{ cat|escapejs }}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <span>{{ cat }}</span>
+            </div>
+            {% endfor %}
+        </div>
 
-        <div class="listings-grid">
+        <div class="section-title">Fresh recommendations</div>
+        <div class="modern-grid">
             {% for product in products %}
-            <div class="product-card">
-                <div class="product-image">
+            <div class="modern-card">
+                <div class="modern-card-img">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    {% else %}No Image{% endif %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:100%; height:100%; object-fit:cover;">
+                    {% else %}
+                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:var(--muted);">No Image</div>
+                    {% endif %}
                 </div>
-                <div class="product-body">
-                    <span class="product-category">{{ product.category }}</span>
-                    <h2 class="product-title">{{ product.name }}</h2>
-                    <p style="font-size: 0.85rem; margin-bottom: 15px;">{{ product.location }}</p>
-                    
-                    <div class="product-meta">
+                <div class="modern-card-body">
+                    <div class="modern-card-header">
                         <div>
-                            <span class="product-meta-label">Rental Fee</span>
-                            <span class="product-meta-value">₹{{ product.rental_price }}/day</span>
+                            <h2 class="modern-card-title">{{ product.name }}</h2>
+                            <div class="modern-card-subtitle">{{ product.location }}</div>
                         </div>
-                        <div>
-                            <span class="product-meta-label">Deposit</span>
-                            <span class="product-meta-value">₹{{ product.security_deposit }}</span>
+                        <div class="modern-card-price">
+                            <span class="modern-card-price-label">Per Day</span>
+                            ₹{{ product.rental_price }}
                         </div>
                     </div>
                     
-                    <div class="product-actions">
+                    <div class="modern-card-meta">
+                        <div class="meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            <span>Dep: ₹{{ product.security_deposit }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                            <span>{{ product.category }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <span>{{ product.condition }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="modern-card-actions">
                         <button class="secondary-button" onclick="openViewModal({
                             id: '{{ product.id }}',
                             name: '{{ product.name|escapejs }}',
@@ -74,7 +98,7 @@
                             location: '{{ product.location|escapejs }}',
                             condition: '{{ product.condition|escapejs }}',
                             imageUrl: '{% if product.image %}{{ product.image.url }}{% endif %}'
-                        })">View</button>
+                        })">Details</button>
 
                         <button onclick="openBookingModal({
                             id: '{{ product.id }}',
@@ -82,12 +106,12 @@
                             price: '{{ product.rental_price }}',
                             deposit: '{{ product.security_deposit }}',
                             description: '{{ product.description|escapejs }}'
-                        })">Rent</button>
+                        })">Rent Now</button>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--muted);">
+            <div style="text-align: center; padding: 40px; color: var(--muted);">
                 No items available at the moment.
             </div>
             {% endfor %}
@@ -265,6 +289,11 @@
 </div>
 
 <script>
+    function selectCategory(cat) {
+        document.getElementById('categoryInput').value = cat;
+        document.getElementById('searchForm').submit();
+    }
+
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-nav-item').forEach(el => el.classList.remove('active'));
