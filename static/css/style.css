@@ -56,7 +56,6 @@ body {
   height: 34px;
   overflow: hidden;
   border-radius: 6px;
-  background: #000;
   padding: 0 8px;
 }
 
@@ -65,6 +64,11 @@ body {
   height: 100%;
   object-fit: contain;
   object-position: left center;
+  filter: invert(1) hue-rotate(180deg);
+}
+
+[data-theme="dark"] .brand img {
+  filter: none;
 }
 
 nav {

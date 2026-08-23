@@ -9,6 +9,14 @@
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <link rel="manifest" href="{% static 'manifest.json' %}">
   <meta name="theme-color" content="#ffffff">
+  <script>
+    (() => {
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (systemDark ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
 </head>
 
 <body>
@@ -44,17 +52,16 @@
     {% block content %}{% endblock %}
   </main>
   <script>
-    (() => {
-      const savedTheme = localStorage.getItem('theme');
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = savedTheme || (systemDark ? 'dark' : 'light');
-      document.documentElement.dataset.theme = theme;
-      document.querySelector('.theme-toggle').addEventListener('click', () => {
-        const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.dataset.theme = nextTheme;
-        localStorage.setItem('theme', nextTheme);
-      });
-    })();
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.querySelector('.theme-toggle');
+      if (toggle) {
+        toggle.addEventListener('click', () => {
+          const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+          document.documentElement.dataset.theme = nextTheme;
+          localStorage.setItem('theme', nextTheme);
+        });
+      }
+    });
   </script>
   <script>
     if ('serviceWorker' in navigator) {
