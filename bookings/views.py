@@ -13,7 +13,7 @@ def create_booking(request, product_id):
         end_date = datetime.strptime(request.POST['end_date'], '%Y-%m-%d').date()
         
         days = (end_date - start_date).days or 1
-        rental_total = product.rental_amount * days
+        rental_total = product.rental_price * days
 
         Booking.objects.create(
             renter=request.user,
@@ -21,8 +21,8 @@ def create_booking(request, product_id):
             product=product,
             start_date=start_date,
             end_date=end_date,
-            rental_amount=rental_total,
-            deposit_amount=product.deposit_amount,
+            rental_price=rental_total,
+            security_deposit=product.security_deposit,
             status='REQUESTED'
         )
         messages.success(request, "Booking requested! Waiting for lender to accept.")
@@ -67,6 +67,6 @@ def confirm_return(request, booking_id):
         # 1. Rental Amount (₹1,000) released to Lender
         # 2. Deposit Amount (₹5,000) refunded to Renter
         # 3. Platform Fee (₹100) retained
-        messages.success(request, f"Item returned! Released ₹{booking.rental_amount} to you and refunded ₹{booking.deposit_amount} deposit to renter.")
+        messages.success(request, f"Item returned! Released ₹{booking.rental_price} to you and refunded ₹{booking.security_deposit} deposit to renter.")
     return redirect('lender_products')
 

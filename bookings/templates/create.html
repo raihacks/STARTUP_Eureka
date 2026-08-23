@@ -6,9 +6,9 @@
     <h1>Book Item</h1>
     <p style="margin-bottom: 20px; font-size: 1.2rem; font-weight: 700;">{{ product.name }}</p>
     
-    {% if product.rental_amount %}
+    {% if product.rental_price %}
     <div style="margin: 15px 0; padding: 15px; background: var(--page); border: 1px solid var(--border); border-radius: 8px;">
-        <strong style="color: var(--orange); font-size: 1.1rem;">₹{{ product.rental_amount }}</strong> / day
+        <strong style="color: var(--orange); font-size: 1.1rem;">₹{{ product.rental_price }}</strong> / day
     </div>
     {% endif %}
 
