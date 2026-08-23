@@ -17,7 +17,7 @@ class Wallet(models.Model):
 
     class Meta:
       constraints = [
-    models.CheckConstraint(condition=models.Q(balance__gte=0), name="wallet_balance_non_negative"),
+    models.CheckConstraint(check=models.Q(balance__gte=0), name="wallet_balance_non_negative"),
 ]
 
     def __str__(self):

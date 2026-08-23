@@ -9,11 +9,9 @@
         </button>
         <button class="tab-nav-item" onclick="switchTab('requestsTab', this)">
             Booking Requests 
-            
-    {% if active_requests %}
-        <span class="badge">{{ active_requests|length }}</span>
-    {% endif %}
-</button>
+            {% if active_requests %}
+                <span class="badge">{{ active_requests|length }}</span>
+            {% endif %}
         </button>
         <button class="tab-nav-item" onclick="switchTab('earningsTab', this)">
             Earnings & Wallet
@@ -82,15 +80,6 @@
     </section>
 
     <!-- TAB 2: BOOKING REQUESTS -->
-    <!-- TAB NAV BADGE UPDATE -->
-    <button class="tab-nav-item" onclick="switchTab('requestsTab', this)">
-        Booking Requests 
-        {% if active_requests %}
-            <span class="badge">{{ active_requests|length }}</span>
-        {% endif %}
-    </button>
-
-    <!-- TAB 2: BOOKING REQUESTS -->
     <section id="requestsTab" class="tab-content">
         <h1 style="margin: 0 0 20px 0; font-size: 1.6rem;">Booking Alerts & Requests</h1>
         
@@ -107,38 +96,38 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for request in active_requests %}
+                    {% for booking_req in active_requests %}
                         <tr>
                             <td>
-                                <strong>{{ request.renter.username }}</strong><br>
+                                <strong>{{ booking_req.renter.username }}</strong><br>
                                 <span style="font-size: 0.8rem; color: var(--muted);">Customer</span>
                             </td>
-                            <td>{{ request.product.name }}</td>
+                            <td>{{ booking_req.product.name }}</td>
                             <td>
-                                <div><strong style="font-size:0.8rem;">START:</strong> {{ request.start_date }}</div>
-                                <div><strong style="font-size:0.8rem;">END:</strong> {{ request.end_date }}</div>
+                                <div><strong style="font-size:0.8rem;">START:</strong> {{ booking_req.start_date }}</div>
+                                <div><strong style="font-size:0.8rem;">END:</strong> {{ booking_req.end_date }}</div>
                             </td>
-                            <td>₹{{ request.total_price }}</td>
-                            <td><span class="status status-{{ request.status|lower }}">{{ request.status }}</span></td>
+                            <td>₹{{ booking_req.total_price }}</td>
+                            <td><span class="status status-{{ booking_req.status|lower }}">{{ booking_req.status }}</span></td>
                             <td>
-                                {% if request.status == 'PENDING' %}
+                                {% if booking_req.status == 'PENDING' %}
                                     <div style="display:flex; gap: 5px;">
-                                        <form method="POST" action="{% url 'accept_booking' request.id %}">
+                                        <form method="POST" action="{% url 'accept_booking' booking_req.id %}">
                                             {% csrf_token %}
                                             <button type="submit" style="padding: 6px 12px; font-size: 0.8rem; background: #28a745; border-color: #28a745;">Accept</button>
                                         </form>
-                                        <form method="POST" action="{% url 'reject_booking' request.id %}">
+                                        <form method="POST" action="{% url 'reject_booking' booking_req.id %}">
                                             {% csrf_token %}
                                             <button type="submit" class="secondary-button" style="padding: 6px 12px; font-size: 0.8rem; color: #dc3545; border-color: #dc3545;">Decline</button>
                                         </form>
                                     </div>
-                                {% elif request.status == 'PAID' %}
-                                    <form method="POST" action="{% url 'confirm_handover' request.id %}">
+                                {% elif booking_req.status == 'PAID' %}
+                                    <form method="POST" action="{% url 'confirm_handover' booking_req.id %}">
                                         {% csrf_token %}
                                         <button type="submit" style="padding: 6px 12px; font-size: 0.8rem;">Mark Handed Over</button>
                                     </form>
-                                {% elif request.status == 'ACTIVE' %}
-                                    <form method="POST" action="{% url 'confirm_return' request.id %}">
+                                {% elif booking_req.status == 'ACTIVE' %}
+                                    <form method="POST" action="{% url 'confirm_return' booking_req.id %}">
                                         {% csrf_token %}
                                         <button type="submit" style="padding: 6px 12px; font-size: 0.8rem; background: #17a2b8; border-color: #17a2b8;">Mark Returned</button>
                                     </form>
