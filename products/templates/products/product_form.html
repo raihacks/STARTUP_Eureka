@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}
+    {% if editing_product %}Edit {{ editing_product.name }}{% else %}Add New Item{% endif %} | Konekt
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-card">
+        <h1>{% if editing_product %}Edit Item{% else %}List a New Item{% endif %}</h1>
+        <p style="margin-bottom: 20px;">
+            {% if editing_product %}Update the details of your listing.{% else %}Fill out the details below to start renting out your item.{% endif %}
+        </p>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="field-help">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button type="submit" style="flex: 1;">
+                    {% if editing_product %}Save Changes{% else %}Publish Listing{% endif %}
+                </button>
+                <a href="{% url 'lender_products' %}" class="secondary-button" style="flex: 1; text-align: center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -85,7 +85,7 @@ def add_product(request):
 
             product.save()
 
-            return redirect("products_page")
+            return redirect("lender_products")
 
     else:
 
@@ -97,10 +97,9 @@ def add_product(request):
 
     return render(
         request,
-        "products/product.html",
+        "products/product_form.html",
         {
-            "form": form,
-            "products": products
+            "form": form
         }
     )
 
@@ -126,7 +125,7 @@ def edit_product(request, product_id):
 
             form.save()
 
-            return redirect("products_page")
+            return redirect("lender_products")
 
     else:
 
@@ -136,12 +135,9 @@ def edit_product(request, product_id):
 
     return render(
         request,
-        "products/product.html",
+        "products/product_form.html",
         {
             "form": form,
-            "products": Product.objects.filter(
-                owner=request.user
-            ),
             "editing_product": product
         }
     )
