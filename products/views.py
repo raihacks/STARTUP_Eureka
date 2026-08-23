@@ -41,28 +41,28 @@ def accept_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, product__lender=request.user)
     booking.status = 'APPROVED'
     booking.save()
-    return redirect('lender_dashboard')
+    return redirect('lender_products')
 
 @login_required
 def reject_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, product__lender=request.user)
     booking.status = 'REJECTED'
     booking.save()
-    return redirect('lender_dashboard')
+    return redirect('lender_products')
 
 @login_required
 def confirm_handover(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, product__lender=request.user)
     booking.status = 'ACTIVE'
     booking.save()
-    return redirect('lender_dashboard')
+    return redirect('lender_products')
 
 @login_required
 def confirm_return(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, product__lender=request.user)
     booking.status = 'COMPLETED'
     booking.save()
-    return redirect('lender_dashboard')
+    return redirect('lender_products')
 @login_required
 def add_product(request):
 

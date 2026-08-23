@@ -39,8 +39,10 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    """Simple placeholder landing page after login/registration."""
-    return render(request, "accounts/dashboard.html", {"user": request.user})
+    """Redirects the user to the appropriate integrated dashboard based on their role."""
+    if request.user.role == "LENDER":
+        return redirect("lender_products")
+    return redirect("customer_catalog")
 
 
 @login_required
