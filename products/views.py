@@ -23,17 +23,25 @@ def products_page(request):
 
 @login_required
 def lender_products(request):
-    # 1. Fetch all products owned by the logged-in user ("demo")
-    user_products = Product.objects.filter(owner=request.user)
+   # Ensure foreign key field name matches your Product model (owner vs lender)
+    products = Product.objects.filter(owner=request.user)
     
-    # 2. Query bookings whose product belongs to the user's products
-    lender_bookings = Booking.objects.filter(
-        product__in=user_products
-    ).select_related('renter', 'product').order_by('-created_at')
+    # Query all bookings for this lender's products
+    all_bookings = Booking.objects.filter(product__owner=request.user).order_by('-id')
+
+    # Exclude finished states regardless of uppercase/lowercase strings
+    active_requests = all_bookings.exclude(
+        status__iexact='COMPLETED'
+    ).exclude(
+        status__iexact='REJECTED'
+    ).exclude(
+        status__iexact='CANCELLED'
+    )
 
     context = {
-        'products': user_products,
-        'lender_bookings': lender_bookings,
+        'products': products,
+        'active_requests': active_requests,
+        'lender_bookings': all_bookings,
     }
     return render(request, 'products/product.html', context)
 
