@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Simulated Checkout | Konekt{% endblock %}
+
+{% block content %}
+<div style="max-width: 480px; margin: 40px auto; padding: 24px; border: 1px solid var(--border, #ccc); border-radius: 12px; background: var(--bg-card, #fff);">
+    <h2>Simulated Payment Gateway</h2>
+    <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 20px;">
+        Paying for: <strong>{{ booking.product.name }}</strong>
+    </p>
+
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Rental Amount:</span>
+            <span>₹{{ booking.rental_price }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Escrow Deposit:</span>
+            <span>₹{{ booking.deposit_amount }}</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 8px 0;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem;">
+            <span>Total Payable:</span>
+            <span style="color: #ff6b00;">₹{{ booking.total_price }}</span>
+        </div>
+    </div>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div style="margin-bottom: 20px;">
+            <label for="pin" style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 6px;">
+                Enter 4-Digit Security PIN (Demo: 1234)
+            </label>
+            <input type="password" id="pin" name="pin" maxlength="4" placeholder="••••" required 
+                   style="width: 100%; padding: 12px; font-size: 1.2rem; letter-spacing: 6px; text-align: center; border: 1px solid #ccc; border-radius: 6px;">
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer;">
+            Authorize & Pay ₹{{ booking.total_price }}
+        </button>
+    </form>
+</div>
+{% endblock %}

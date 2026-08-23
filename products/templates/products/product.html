@@ -9,9 +9,11 @@
         </button>
         <button class="tab-nav-item" onclick="switchTab('requestsTab', this)">
             Booking Requests 
-            {% if lender_bookings %}
-                <span class="badge">{{ lender_bookings|length }}</span>
-            {% endif %}
+            
+    {% if active_requests %}
+        <span class="badge">{{ active_requests|length }}</span>
+    {% endif %}
+</button>
         </button>
         <button class="tab-nav-item" onclick="switchTab('earningsTab', this)">
             Earnings & Wallet
@@ -80,6 +82,15 @@
     </section>
 
     <!-- TAB 2: BOOKING REQUESTS -->
+    <!-- TAB NAV BADGE UPDATE -->
+    <button class="tab-nav-item" onclick="switchTab('requestsTab', this)">
+        Booking Requests 
+        {% if active_requests %}
+            <span class="badge">{{ active_requests|length }}</span>
+        {% endif %}
+    </button>
+
+    <!-- TAB 2: BOOKING REQUESTS -->
     <section id="requestsTab" class="tab-content">
         <h1 style="margin: 0 0 20px 0; font-size: 1.6rem;">Booking Alerts & Requests</h1>
         
@@ -96,7 +107,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for request in lender_bookings %}
+                    {% for request in active_requests %}
                         <tr>
                             <td>
                                 <strong>{{ request.renter.username }}</strong><br>
@@ -131,14 +142,12 @@
                                         {% csrf_token %}
                                         <button type="submit" style="padding: 6px 12px; font-size: 0.8rem; background: #17a2b8; border-color: #17a2b8;">Mark Returned</button>
                                     </form>
-                                {% else %}
-                                    <span style="color: var(--muted); font-size: 0.85rem;">No action needed</span>
                                 {% endif %}
                             </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 30px;">No requests found.</td>
+                            <td colspan="6" style="text-align: center; padding: 30px; color: var(--muted);">No active booking requests.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
