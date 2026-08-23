@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'products',
+    'bookings',
+    'payments',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -129,13 +132,16 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Media files (user uploads, e.g. KYC documents)
-MEDIA_URL = 'media/'
+# Media files (user uploads)
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Keep uploaded KYC documents private in production: serve them through an
 # authenticated view or a signed-URL bucket (S3, GCS, etc.), not directly
 # from MEDIA_URL/nginx. The dev server below just serves them plainly.
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

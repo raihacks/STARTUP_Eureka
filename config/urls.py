@@ -19,10 +19,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def simple_logout(request):
+    logout(request)
+    return redirect('/product/catalog/')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('product/', include('products.urls')),  
+    path('booking/', include('bookings.urls')), 
+    path('payments/', include('payments.urls')),
+    path('logout/', simple_logout, name='logout'),      
     path('', RedirectView.as_view(pattern_name='accounts:dashboard', permanent=False)),
 ]
 

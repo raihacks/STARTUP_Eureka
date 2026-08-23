@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Checkout</title></head>
+<body style="font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+    <h2>Review & Pay</h2>
+    <p><strong>Item:</strong> {{ booking.product.name }}</p>
+    <p><strong>Dates:</strong> {{ booking.start_date }} to {{ booking.end_date }}</p>
+    <hr>
+    <p>Rental Fee: ₹{{ booking.rental_price}}</p>
+    <p>Refundable Deposit: ₹{{ booking.deposit_amount }}</p>
+    <p>Platform Fee: ₹{{ booking.platform_fee }}</p>
+    <hr>
+    <h3>Total Payable: ₹{{ booking.total_amount }}</h3>
+
+   <form method="POST" action="{% url 'payments:process_payment' booking.id %}">
+        {% csrf_token %}
+        <button type="submit" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; font-size: 16px; border-radius: 4px; cursor: pointer;">
+            Simulate Pay ₹{{ booking.total_amount }}
+        </button>
+    </form>
+</body>
+</html>
