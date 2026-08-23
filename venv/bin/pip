@@ -1,4 +1,4 @@
-#!/home/siddhi/STARTUP_Eureka/venv/bin/python3
+#!/home/siddhi/STARTUP_Eureka/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

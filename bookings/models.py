@@ -102,11 +102,11 @@ class Booking(models.Model):
             models.Index(fields=["status", "approval_expires_at"]),
         ]
         constraints = [
-    models.CheckConstraint(
-        check=Q(end_date__gte=models.F("start_date")),
-        name="booking_end_date_gte_start_date",
-    ),
-]
+            models.CheckConstraint(
+                condition=Q(end_date__gte=models.F("start_date")),
+                name="booking_end_date_gte_start_date",
+            ),
+        ]
 
     def __str__(self):
         return f"Booking #{self.pk} [{self.product_id}] {self.status}"
