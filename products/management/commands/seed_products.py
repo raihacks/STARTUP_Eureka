@@ -38,6 +38,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Created sample renter: {renter.username}'))
 
         # 3. Create Sample Products
+        
         sample_products = [
             # Vehicles
             {'name': 'Honda City 2020', 'description': 'Well maintained sedan.', 'category': 'Vehicles', 'rental_price': 1500.0, 'security_deposit': 10000.0, 'location': 'Mumbai', 'condition': 'Good', 'available': True},
