@@ -31,9 +31,13 @@ def lender_products(request):
         product__in=user_products
     ).select_related('renter', 'product').order_by('-created_at')
 
+    # 3. Active requests (PENDING status)
+    active_requests = lender_bookings.filter(status='PENDING')
+
     context = {
         'products': user_products,
         'lender_bookings': lender_bookings,
+        'active_requests': active_requests,
     }
     return render(request, 'products/product.html', context)
 
