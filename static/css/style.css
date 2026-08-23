@@ -38,33 +38,32 @@ body {
   transition: background-color .2s, color .2s;
 }
 
+/* Ensure navbar contents scale properly */
 .navbar {
-  min-height: 74px;
-  padding: 10px clamp(20px, 6vw, 88px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 1rem;
 }
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  width: 100px;
-  height: 34px;
-  overflow: hidden;
-  border-radius: 6px;
-  background: #000;
-  padding: 0 8px;
-}
-
+/* Force the logo image to stay within mobile-friendly bounds */
 .brand img {
-  width: 100%;
-  height: 100%;
+  height: 40px;
+  /* Set a fixed navbar height */
+  width: auto;
+  /* Preserve aspect ratio */
+  max-width: 100%;
+  /* Prevent overflowing container */
   object-fit: contain;
-  object-position: left center;
+  /* Prevent stretching or distortion */
+  display: block;
+}
+
+/* Ensure the brand anchor doesn't blow out mobile flex width */
+.brand {
+  display: inline-block;
+  flex-shrink: 0;
+  /* Keeps the logo from squishing when space is tight */
 }
 
 nav {
