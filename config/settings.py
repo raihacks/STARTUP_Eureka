@@ -31,10 +31,11 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
-CSRF_TRUSTED_ORIGINS = os.environ.get(
-    'CSRF_TRUSTED_ORIGINS', ''
-).split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
+_raw_hosts = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [h.strip().strip('\'"') for h in _raw_hosts.split(',')] if _raw_hosts else ['*']
+
+_raw_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [o.strip().strip('\'"') for o in _raw_origins.split(',')] if _raw_origins else []
 
 # Application definition
 
