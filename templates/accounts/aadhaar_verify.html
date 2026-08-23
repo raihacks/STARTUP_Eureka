@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Enter OTP{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h1>Enter OTP</h1>
+  <p>We sent an OTP to the mobile number linked to Aadhaar ending in {{ last4 }}.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <div class="field-error">{{ field.errors|striptags }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit">Verify</button>
+  </form>
+  <p><a href="{% url 'accounts:aadhaar_otp_request' %}">Use a different Aadhaar number</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h1>Welcome, {{ user.username }}</h1>
+  <p>Role: <strong>{{ user.get_role_display }}</strong></p>
+
+  {% if user.kyc_status == "VERIFIED" %}
+    <p class="status status-verified">✅ KYC verified</p>
+  {% elif user.kyc_status == "PENDING" %}
+    <p class="status status-pending">⏳ KYC pending review — <a href="{% url 'accounts:kyc_submit' %}">view status</a></p>
+  {% elif user.kyc_status == "REJECTED" %}
+    <p class="status status-rejected">❌ KYC rejected — <a href="{% url 'accounts:kyc_submit' %}">resubmit documents</a></p>
+  {% endif %}
+
+  <p>This is a placeholder dashboard. Product browsing, bookings, and payments will plug in here next.</p>
+</div>
+{% endblock %}
