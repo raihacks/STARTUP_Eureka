@@ -1,11 +1,15 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Rental Marketplace{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <meta name="theme-color" content="#ffffff">
 </head>
+
 <body>
   <header class="navbar">
     <a href="{% url 'accounts:dashboard' %}" class="brand" aria-label="Konekt home">
@@ -13,11 +17,16 @@
     </a>
     <nav>
       {% if user.is_authenticated %}
-        <span>Hi, {{ user.username }} ({{ user.role|title }})</span>
-        <a href="{% url 'accounts:logout' %}">Logout</a>
+      <span>Hi, {{ user.username }} ({{ user.role|title }})</span>
+      <a href="{% url 'accounts:kyc_submit' %}"
+        class="{% if user.kyc_status == 'VERIFIED' %}status-verified{% else %}status-pending{% endif %}"
+        style="padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: 1px solid var(--border);">
+        KYC: {{ user.get_kyc_status_display }}
+      </a>
+      <a href="{% url 'accounts:logout' %}">Logout</a>
       {% else %}
-        <a href="{% url 'accounts:login' %}">Login</a>
-        <a href="{% url 'accounts:register' %}">Register</a>
+      <a href="{% url 'accounts:login' %}">Login</a>
+      <a href="{% url 'accounts:register' %}">Register</a>
       {% endif %}
       <button class="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle color theme">
         <span class="theme-toggle__sun" aria-hidden="true">☀</span>
@@ -27,24 +36,36 @@
   </header>
   <main class="container">
     {% if messages %}
-      {% for message in messages %}
-        <div class="alert">{{ message }}</div>
-      {% endfor %}
+    {% for message in messages %}
+    <div class="alert">{{ message }}</div>
+    {% endfor %}
     {% endif %}
     {% block content %}{% endblock %}
   </main>
-<script>
-  (() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = savedTheme || (systemDark ? 'dark' : 'light');
-    document.documentElement.dataset.theme = theme;
-    document.querySelector('.theme-toggle').addEventListener('click', () => {
-      const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = nextTheme;
-      localStorage.setItem('theme', nextTheme);
-    });
-  })();
-</script>
+  <script>
+    (() => {
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (systemDark ? 'dark' : 'light');
+      document.documentElement.dataset.theme = theme;
+      document.querySelector('.theme-toggle').addEventListener('click', () => {
+        const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = nextTheme;
+        localStorage.setItem('theme', nextTheme);
+      });
+    })();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('{% static "sw.js" %}').then((registration) => {
+          console.log('ServiceWorker registration successful');
+        }).catch((err) => {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+  </script>
 </body>
+
 </html>

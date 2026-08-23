@@ -98,11 +98,7 @@ class RealAadhaarOTPProvider(AadhaarOTPProvider):
 
 
 def get_aadhaar_otp_provider() -> AadhaarOTPProvider:
-    """
-    Returns the mock provider unless USE_REAL_KYC_PROVIDER=True is set in
-    the environment, in which case it returns the real one (which requires
-    KYC_PROVIDER_API_KEY / KYC_PROVIDER_BASE_URL to also be set).
-    """
     if os.environ.get("USE_REAL_KYC_PROVIDER") == "True":
         return RealAadhaarOTPProvider()
+
     return MockAadhaarOTPProvider()

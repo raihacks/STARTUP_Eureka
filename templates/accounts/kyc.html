@@ -5,47 +5,47 @@
   <h1>KYC Verification</h1>
 
   {% if user.kyc_status == "VERIFIED" %}
-    <p class="status status-verified">✅ Your account is verified.</p>
-    {% if latest %}
-      <p>Verified on {{ latest.reviewed_at|date:"d M Y" }}.</p>
-    {% endif %}
+  <p class="status status-verified">Your account is verified.</p>
+  {% if latest %}
+  <p>Verified on {{ latest.reviewed_at|date:"d M Y" }}.</p>
+  {% endif %}
 
   {% elif under_review %}
-    <p class="status status-pending">⏳ Your documents are under review.</p>
-    <p>Submitted on {{ latest.submitted_at|date:"d M Y" }}. This usually takes 1–2 business days.</p>
+  <p class="status status-pending">Your documents are under review.</p>
+  <p>Submitted on {{ latest.submitted_at|date:"d M Y" }}. This usually takes 1–2 business days.</p>
 
   {% else %}
-    {% if latest and latest.status == "REJECTED" %}
-      <p class="status status-rejected">❌ Your last submission was rejected.</p>
-      {% if latest.rejection_reason %}
-        <p>Reason: {{ latest.rejection_reason }}</p>
+  {% if latest and latest.status == "REJECTED" %}
+  <p class="status status-rejected">Your last submission was rejected.</p>
+  {% if latest.rejection_reason %}
+  <p>Reason: {{ latest.rejection_reason }}</p>
+  {% endif %}
+  <p>Please review the details below and resubmit.</p>
+  {% else %}
+  <p>Verify your identity to unlock lending and renting on the platform.</p>
+  {% endif %}
+
+  <p class="or-divider">— or —</p>
+  <a href="{% url 'accounts:aadhaar_otp_request' %}" class="secondary-button">Verify instantly via Aadhaar OTP</a>
+
+  <h2 class="section-heading">Upload a document instead</h2>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}
+      <div class="field-help">{{ field.help_text }}</div>
       {% endif %}
-      <p>Please review the details below and resubmit.</p>
-    {% else %}
-      <p>Verify your identity to unlock lending and renting on the platform.</p>
-    {% endif %}
-
-    <p class="or-divider">— or —</p>
-    <a href="{% url 'accounts:aadhaar_otp_request' %}" class="secondary-button">Verify instantly via Aadhaar OTP</a>
-
-    <h2 class="section-heading">Upload a document instead</h2>
-    <form method="post" enctype="multipart/form-data" novalidate>
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-      {% for field in form %}
-        <div class="field">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}
-            <div class="field-help">{{ field.help_text }}</div>
-          {% endif %}
-          {% if field.errors %}
-            <div class="field-error">{{ field.errors|striptags }}</div>
-          {% endif %}
-        </div>
-      {% endfor %}
-      <button type="submit">Submit for review</button>
-    </form>
+      {% if field.errors %}
+      <div class="field-error">{{ field.errors|striptags }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit">Submit for review</button>
+  </form>
   {% endif %}
 
   <p><a href="{% url 'accounts:dashboard' %}">← Back to dashboard</a></p>
